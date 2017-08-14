@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <inttypes.h>
 
 #define N_COLS 14
 #define N_ROWS 5
@@ -24,6 +25,8 @@ int MATRIX_ROW_BITS[N_ROWS] = {
 };
 
 void set_io_mode(char port_chr, int bit, int mode);
+void set_pin(char port_chr, int bit, int val);
+bool read_pin(char port_chr, int bit);
 
 void setup_io(void);
 

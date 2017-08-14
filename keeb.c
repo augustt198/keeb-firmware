@@ -54,8 +54,39 @@ void set_io_mode(char port_chr, int bit, int mode) {
     }
 }
 
-bool scan_matrix(int row, int col) {
-    // todo
+void set_pin(char port_chr, int bit, int val) {
+    if (port_chr == 'A') {
+        _set_bit(PORTA, bit, val);
+    } else if (port_chr == 'B') {
+        _set_bit(PORTB, bit, val);
+    } else if (port_chr == 'C') {
+        _set_bit(PORTC, bit, val);
+    } else if (port_chr == 'D') {
+        _set_bit(PORTD, bit, val);
+    } else if (port_chr == 'E') {
+        _set_bit(PORTE, bit, val);
+    } else if (port_chr == 'F') {
+        _set_bit(PORTF, bit, val);
+    }
+}
+
+bool read_pin(char port_chr, int bit) {
+    uint8_t p = 0;
+    if (port_chr == 'A') {
+        p = PINA;
+    } else if (port_chr == 'B') {
+        p = PINB;
+    } else if (port_chr == 'C') {
+        p = PINC;
+    } else if (port_chr == 'D') {
+        p = PIND;
+    } else if (port_chr == 'E') {
+        p = PINE;
+    } else if (port_chr == 'F') {
+        p = PINF;
+    }
+
+    return ((p >> bit) & 1) == 1;
 }
 
 void setup_io(void) {
@@ -76,8 +107,28 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
                                          void* ReportData,
                                          uint16_t* const ReportSize) {
 
+    int hits = 0;
+    // scan matrix
+    for (int row = 0; row < N_ROWS; row++) {
+        char row_port = MATRIX_ROW_PORTS[row];
+        int row_bit   = MATRIX_ROW_BITS[row];
+        set_pin(row_port, row_bit, 1);
 
-    
-    // todo
+        for (int col = 0; col < N_COLS; col++) {
+            char col_port = MATRIX_COL_PORTS[col];
+            int col_bit   = MATRIX_COL_BITS[col];
+            if (read_pin(col_port, col_bit)) {
+                // hit
+                hits++;
+            }
+            if (hits == 6)
+                break;
+        }
+        set_pin(row_port, row_bit, 0);
+
+        if (hits == 6)
+            break;
+    }
+
     return false;
 }
