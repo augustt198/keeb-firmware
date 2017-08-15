@@ -32,6 +32,8 @@ void setup_io(void);
 
 bool scan_matrix(int row, int col);
 
+void init_layout(int *layout, int rows, int cols);
+
 bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo,
                                          uint8_t* const ReportID,
                                          const uint8_t ReportType,

@@ -24,10 +24,11 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
     };
 
 
-
+int layout[N_ROWS * N_COLS];
 
 int main(void) {
     setup_io();
+    init_layout(layout, N_ROWS, N_COLS);
     GlobalInterruptEnable();
 
     while (true) {
@@ -107,6 +108,9 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
                                          void* ReportData,
                                          uint16_t* const ReportSize) {
 
+    USB_KeyboardReport_Data_t* KeyboardReport = (USB_KeyboardReport_Data_t*)ReportData;
+
+
     int hits = 0;
     // scan matrix
     for (int row = 0; row < N_ROWS; row++) {
@@ -117,10 +121,17 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
         for (int col = 0; col < N_COLS; col++) {
             char col_port = MATRIX_COL_PORTS[col];
             int col_bit   = MATRIX_COL_BITS[col];
+
             if (read_pin(col_port, col_bit)) {
-                // hit
+                int idx = row*N_ROWS + col;
+                int scancode = layout[idx];
+                if (scancode == -1)
+                    continue; // not registered
+
+                KeyboardReport->KeyCode[hits] = scancode;
                 hits++;
             }
+
             if (hits == 6)
                 break;
         }
@@ -130,5 +141,6 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDIn
             break;
     }
 
+    *ReportSize = sizeof(USB_KeyboardReport_Data_t);
     return false;
 }
